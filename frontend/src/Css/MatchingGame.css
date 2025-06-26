@@ -1,0 +1,112 @@
+.matching-game-container {
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+  background-color: powderblue;
+  z-index: 1;
+  margin-top: -4%;
+}
+.Pairs{
+  display: flex;
+  padding: 5px;
+  gap: 40px;
+}
+.title {
+  margin-top: 4%;
+  margin-bottom: 20px;
+}
+
+.status {
+  margin-bottom: 20px;
+}
+
+.hearts {
+  font-weight: normal;
+  margin-bottom: 10px;
+}
+
+.lose-message {
+  color: red;
+  margin-bottom: 10px;
+}
+
+.restart-button {
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.game-columns {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  width: 50%;
+}
+
+.states-column, .capitals-column {
+  flex: 1;
+  padding: 0 10px;
+}
+
+.states-column {
+  margin-right: 10px;
+}
+
+.capitals-column {
+  margin-left: 10px;
+}
+
+.list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+.list-item {
+  padding: 10px;
+  margin: 5px 0;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: white;
+  transition: background-color 0.3s ease, opacity 0.5s ease, transform 0.5s ease;
+}
+@keyframes flowOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translateY(-10px) scale(1.05); /* Slight upward movement and scaling */
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8); /* Final position */
+  }
+}
+.list-item.removing {
+  animation: flowOut 0.5s forwards; /* Apply the flowOut animation */
+}
+.list-item.selected {
+  background-color: #a5d6a7;
+}
+.feedback-text {
+  font-weight: bold;
+  display: inline;
+}
+
+.feedback-text.correct {
+  color: green;
+}
+
+.feedback-text.incorrect {
+  color: red;
+}
+
+.matched-pairs-title {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}

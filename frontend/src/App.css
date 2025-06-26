@@ -1,0 +1,22 @@
+.nav-link {
+  color: #0077cc;
+  font-weight: bold;
+  margin-right: 90%;
+}
+
+a{
+  text-decoration: none;
+}
+header {
+  text-align: center;
+  margin: 0 auto;
+  margin-bottom: 10px;
+  padding: 5px 0;
+  background-color: powderblue;
+  border-radius: 8px;
+  box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+  max-width: 1200px;
+}
+header h1{
+  margin-top: -1%;
+}

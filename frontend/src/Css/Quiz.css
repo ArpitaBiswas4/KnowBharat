@@ -1,0 +1,35 @@
+.quiz-wrapper {
+  padding: 2rem;
+  text-align: center;
+}
+
+.category-select button,
+.option-btn,
+.score-screen button {
+  margin: 0.5rem;
+  padding: 10px 20px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  background-color: #007bff;
+  color: white;
+}
+
+.option-btn.correct {
+  background-color: #28a745;
+}
+
+.option-btn.wrong {
+  background-color: #dc3545;
+}
+
+.quiz-card {
+  margin-top: 2rem;
+}
+
+.options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
