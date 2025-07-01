@@ -5,7 +5,7 @@ export default function useStateData() {
   const [selectedState, setSelectedState] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8080/states/all')
+    fetch('http://localhost:8081/states/all')
       .then(res => {
         if (!res.ok) throw new Error('Network response was not ok');
         return res.json();

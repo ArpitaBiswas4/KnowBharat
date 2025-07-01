@@ -5,9 +5,9 @@ export default function usePlaceData(stateId, fetchAll = false) {
 
   useEffect(() => {
     const url = fetchAll
-      ? `http://localhost:8080/places/all`
+      ? `http://localhost:8081/places/all`
       : stateId
-      ? `http://localhost:8080/places/place/${stateId}`
+      ? `http://localhost:8081/places/place/${stateId}`
       : null;
 
     if (!url) return;

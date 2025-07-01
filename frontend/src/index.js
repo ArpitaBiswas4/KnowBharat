@@ -5,7 +5,8 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'leaflet/dist/leaflet.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import './App.css';  // for your custom styles
+import './App.css';  
+
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));

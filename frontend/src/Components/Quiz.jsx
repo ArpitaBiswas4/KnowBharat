@@ -4,7 +4,19 @@ import useFoodData from '../Hooks/useFoodData';
 import usePlaceData from '../Hooks/usePlaceData';
 import useFestivalData from '../Hooks/useFestivalData';
 import useWearData from '../Hooks/useWearData';
+import ScoreScreen from './ScoreScreen';
 import '../Css/Quiz.css';
+
+const categoryLabels = {
+  food: 'Food',
+  place: 'Place',
+  festival: 'Festival',
+  wear: 'Traditional Wear',
+  capital: 'Capital',
+  establish: 'Establishment Year',
+  language: 'Language',
+  mix: 'Mix'
+};
 
 export default function QuizGame() {
   const { stateData } = useStateData();
@@ -20,59 +32,35 @@ export default function QuizGame() {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [showScore, setShowScore] = useState(false);
 
+  const optionLabels = ['A', 'B', 'C', 'D'];
+
   useEffect(() => {
     if (!category || questions.length > 0) return;
 
     let items = [];
+    const formatWear = wear => ({ ...wear, name: wear.menWear, type: 'wear' });
 
     if (category === 'food') items = foodData.map(i => ({ ...i, type: 'food' }));
     if (category === 'place') items = placeData.map(i => ({ ...i, type: 'place' }));
     if (category === 'festival') items = festivalData.map(i => ({ ...i, type: 'festival' }));
-    if (category === 'wear') {
-      items = (wearData || []).map(i => ({
-        ...i,
-        name: i.menWear,
-        type: 'wear',
-      }));
-    }
-
+    if (category === 'wear') items = (wearData || []).map(formatWear);
     if (category === 'capital') {
-      items = Object.values(stateData).map(i => ({
-        ...i,
-        name: i.capital,
-        state: { name: i.name },
-        type: 'capital',
-      }));
+      items = Object.values(stateData).map(i => ({ ...i, name: i.capital, state: { name: i.name }, type: 'capital' }));
     }
-
     if (category === 'establish') {
-      items = Object.values(stateData).map(i => ({
-        ...i,
-        name: i.established,
-        state: { name: i.name },
-        type: 'establish',
-      }));
+      items = Object.values(stateData).map(i => ({ ...i, name: i.established, state: { name: i.name }, type: 'establish' }));
     }
-
     if (category === 'language') {
-      items = Object.values(stateData).map(i => ({
-        ...i,
-        name: i.language,
-        state: { name: i.name },
-        type: 'language',
-      }));
+      items = Object.values(stateData).map(i => ({ ...i, name: i.language, state: { name: i.name }, type: 'language' }));
     }
-
     if (category === 'mix') {
       items = [
-        ...(foodData || []).map(i => ({ ...i, type: 'food' })),
-        ...(placeData || []).map(i => ({ ...i, type: 'place' })),
-        ...(festivalData || []).map(i => ({ ...i, type: 'festival' })),
-        ...(wearData || []).map(i => ({ ...i, name: i.menWear, type: 'wear' })),
+        ...foodData.map(i => ({ ...i, type: 'food' })),
+        ...placeData.map(i => ({ ...i, type: 'place' })),
+        ...festivalData.map(i => ({ ...i, type: 'festival' })),
+        ...wearData.map(formatWear),
       ];
     }
-
-    if (!items.length) return;
 
     const quizItems = items
       .sort(() => 0.5 - Math.random())
@@ -85,115 +73,110 @@ export default function QuizGame() {
         let options = [];
 
         const allStates = Object.values(stateData).map(s => s.name).filter(n => n !== correctState);
+        const shuffleOptions = (arr, correct) =>
+          [...arr.sort(() => 0.5 - Math.random()).slice(0, 3), correct].sort(() => 0.5 - Math.random());
 
-        // Food
-        if (item.type === 'food') {
-          const allFoods = foodData.map(f => f.name).filter(n => n !== item.name);
-          if (isReverse) {
-            questionText = `${correctState} is famous for which food?`;
+        switch (item.type) {
+          case 'food':
+            questionText = isReverse
+              ? `${correctState} is famous for which food?`
+              : `Where is "${item.name}" popular?`;
+            correct = isReverse ? item.name : correctState;
+            options = shuffleOptions(
+              isReverse
+                ? foodData.map(f => f.name).filter(n => n !== item.name)
+                : allStates,
+              correct
+            );
+            break;
+          case 'place':
+            questionText = isReverse
+              ? `${correctState} is famous for which place?`
+              : `Where is "${item.name}" located?`;
+            correct = isReverse ? item.name : correctState;
+            options = shuffleOptions(
+              isReverse
+                ? placeData.map(p => p.name).filter(n => n !== item.name)
+                : allStates,
+              correct
+            );
+            break;
+          case 'festival':
+            questionText = isReverse
+              ? `${correctState} is known for which festival?`
+              : `"${item.name}" is celebrated in which state?`;
+            correct = isReverse ? item.name : correctState;
+            options = shuffleOptions(
+              isReverse
+                ? festivalData.map(f => f.name).filter(n => n !== item.name)
+                : allStates,
+              correct
+            );
+            break;
+          case 'wear':
+            questionText = isReverse
+              ? `Traditional wear of ${correctState}?`
+              : `"${item.name}" is worn in which state?`;
+            correct = isReverse ? item.name : correctState;
+            options = shuffleOptions(
+              isReverse
+                ? wearData.map(w => w.menWear).filter(n => n !== item.name)
+                : allStates,
+              correct
+            );
+            break;
+          case 'capital':
+            questionText = `What is the capital of ${correctState}?`;
             correct = item.name;
-            options = [...allFoods.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          } else {
-            questionText = `In which state is "${item.name}" famous?`;
-            correct = correctState;
-            options = [...allStates.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          }
-        }
-
-        // Place
-        else if (item.type === 'place') {
-          const allPlaces = placeData.map(p => p.name).filter(n => n !== item.name);
-          if (isReverse) {
-            questionText = `${correctState} is known for which place?`;
+            options = shuffleOptions(
+              Object.values(stateData).map(s => s.capital).filter(c => c !== correct),
+              correct
+            );
+            break;
+          case 'establish':
+            questionText = `When was ${correctState} established?`;
             correct = item.name;
-            options = [...allPlaces.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          } else {
-            questionText = `"${item.name}" is a famous place in which state?`;
-            correct = correctState;
-            options = [...allStates.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          }
-        }
-
-        // Festival
-        else if (item.type === 'festival') {
-          const allFestivals = festivalData.map(f => f.name).filter(n => n !== item.name);
-          if (isReverse) {
-            questionText = `${correctState} is known for which festival?`;
+            options = shuffleOptions(
+              Object.values(stateData).map(s => s.established).filter(c => c !== correct),
+              correct
+            );
+            break;
+          case 'language':
+            questionText = `What is the official language of ${correctState}?`;
             correct = item.name;
-            options = [...allFestivals.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          } else {
-            questionText = `The festival "${item.name}" is celebrated in which state?`;
-            correct = correctState;
-            options = [...allStates.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          }
-        }
-
-        // Wear
-        else if (item.type === 'wear') {
-          const allWears = wearData.map(w => w.menWear).filter(n => n && n !== item.name);
-          if (isReverse) {
-            questionText = `${correctState}'s traditional wear is?`;
-            correct = item.name;
-            options = [...allWears.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          } else {
-            questionText = `Which state's traditional wear is "${item.name}"?`;
-            correct = correctState;
-            options = [...allStates.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-          }
-        }
-
-        // Capital
-        else if (item.type === 'capital') {
-          questionText = `What is the capital of ${correctState}?`;
-          correct = item.name;
-          const allCapitals = Object.values(stateData).map(s => s.capital).filter(c => c && c !== correct);
-          options = [...allCapitals.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-        }
-
-        // Established
-        else if (item.type === 'establish') {
-          questionText = `In which year was ${correctState} established?`;
-          correct = item.name;
-          const allYears = Object.values(stateData).map(s => s.established).filter(y => y && y !== correct);
-          options = [...allYears.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
-        }
-
-        // Language
-        else if (item.type === 'language') {
-          questionText = `What is the official language of ${correctState}?`;
-          correct = item.name;
-          const allLangs = Object.values(stateData).map(s => s.language).filter(l => l && l !== correct);
-          options = [...allLangs.sort(() => 0.5 - Math.random()).slice(0, 3), correct];
+            options = shuffleOptions(
+              Object.values(stateData).map(s => s.language).filter(c => c !== correct),
+              correct
+            );
+            break;
         }
 
         return {
           ...item,
           correct,
           questionText,
-          options: options.sort(() => 0.5 - Math.random()),
+          options,
         };
       });
 
     setQuestions(quizItems);
-    setCurrentIndex(0);
-    setScore(0);
-    setSelectedAnswer(null);
-    setShowScore(false);
   }, [category, foodData, placeData, festivalData, wearData, stateData]);
 
   const handleSelect = (option) => {
+    if (selectedAnswer) return;
     setSelectedAnswer(option);
     if (option === questions[currentIndex].correct) {
       setScore(prev => prev + 1);
     }
-    setTimeout(() => {
-      if (currentIndex + 1 < questions.length) {
-        setCurrentIndex(prev => prev + 1);
-        setSelectedAnswer(null);
-      } else {
-        setShowScore(true);
-      }
-    }, 800);
+  };
+
+  const handleNext = () => {
+    if (currentIndex + 1 < questions.length) {
+      setCurrentIndex(prev => prev + 1);
+      setSelectedAnswer(null);
+    } else {
+      setShowScore(true);
+    }
   };
 
   const resetGame = () => {
@@ -211,46 +194,46 @@ export default function QuizGame() {
     <div className="quiz-wrapper">
       {!category ? (
         <div className="category-select">
-          <h2>🎮 Choose a Category</h2>
-          <button onClick={() => setCategory('food')}>🍲 Food</button>
-          <button onClick={() => setCategory('place')}>🏞️ Places</button>
-          <button onClick={() => setCategory('festival')}>🎉 Festivals</button>
-          <button onClick={() => setCategory('wear')}>👗 Wear</button>
-          <button onClick={() => setCategory('capital')}>🏛️ Capital</button>
-          <button onClick={() => setCategory('establish')}>📅 Established</button>
-          <button onClick={() => setCategory('language')}>🗣️ Language</button>
-          <button onClick={() => setCategory('mix')}>🌈 Mix</button>
+          <h2>🎮 Choose a Category 🎮</h2>
+          {Object.entries(categoryLabels).map(([key, label]) => (
+            <button key={key} onClick={() => setCategory(key)}>{label}</button>
+          ))}
         </div>
       ) : showScore ? (
-        <div className="score-screen">
-          <h2>🎯 Finished!</h2>
-          <p>Your Score: {score} / {questions.length}</p>
-          <button onClick={resetGame}>🔁 Play Again</button>
-        </div>
+        <ScoreScreen score={score} total={questions.length} resetGame={resetGame} />
       ) : (
         current && (
-          <div className="question-box">
-            <div className="quit-row">
-              <button className="quit-button" onClick={resetGame}>❌ Quit</button>
+          <>
+            <h2 className="heading">🤔 Can You Guess Right? It's Quiz Time on {categoryLabels[category]} 🤔</h2>
+            <div className="question-box">
+              <div className="quit-row">
+                <button className="quit-button" onClick={resetGame}>❌</button>
+              </div>
+              <h2 className="question-text">Question {currentIndex + 1} of {questions.length}</h2>
+              <h3 className="quiz-question">{current.questionText}</h3>
+              <div className="answer-options two-columns">
+                {current.options.map((opt, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleSelect(opt)}
+                    className={`option-btn ${selectedAnswer
+                      ? opt === current.correct
+                        ? 'correct'
+                        : opt === selectedAnswer
+                        ? 'wrong'
+                        : ''
+                      : ''}`}
+                    disabled={!!selectedAnswer}
+                  >
+                    <span className="option-label">{optionLabels[i]}.</span> {opt}
+                  </button>
+                ))}
+              </div>
+              {selectedAnswer && (
+                <button className="next-button" onClick={handleNext}>Next</button>
+              )}
             </div>
-            <h3 className="question-text">
-              Q{currentIndex + 1}. {current.questionText}
-            </h3>
-            <div className="answer-options">
-              {current.options.map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSelect(opt)}
-                  className={`option-btn ${selectedAnswer ? (
-                    opt === current.correct ? 'correct' : opt === selectedAnswer ? 'wrong' : ''
-                  ) : ''}`}
-                  disabled={!!selectedAnswer}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
+          </>
         )
       )}
     </div>

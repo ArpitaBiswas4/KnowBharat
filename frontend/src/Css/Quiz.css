@@ -1,35 +1,128 @@
 .quiz-wrapper {
-  padding: 2rem;
-  text-align: center;
-}
-
-.category-select button,
-.option-btn,
-.score-screen button {
-  margin: 0.5rem;
-  padding: 10px 20px;
-  font-size: 1rem;
-  border-radius: 8px;
-  cursor: pointer;
-  border: none;
-  background-color: #007bff;
-  color: white;
-}
-
-.option-btn.correct {
-  background-color: #28a745;
-}
-
-.option-btn.wrong {
-  background-color: #dc3545;
-}
-
-.quiz-card {
-  margin-top: 2rem;
-}
-
-.options {
   display: flex;
   flex-direction: column;
   align-items: center;
+  font-family: 'Comic Sans MS', cursive;
+  color: #333;
+}
+
+.category-select {
+  text-align: center;
+}
+
+.category-select h2 {
+  font-size: 3rem;
+  margin-bottom: 2.5rem;
+}
+
+.heading {
+  font-size: 2.2rem;
+  color: #7c183a;
+  text-shadow: 2px 2px #fff;
+}
+
+.category-select button {
+  margin: 2rem;
+  padding: 2rem 3rem;
+  font-size: 2.2rem;
+  border: none;
+  border-radius: 20px;
+  background: linear-gradient(to right, #fcb045, #fd1d1d, #833ab4);
+  color: white;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.category-select button:hover {
+  transform: scale(1.1);
+}
+
+.question-box {
+  background: #f8f3e0;
+  padding: 2rem;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 800px;
+  margin-top: 3%;
+  text-align: center;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+}
+
+.question-text {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  margin-top: -6%;
+}
+
+.answer-options.two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+  margin-top: 1.5rem;
+}
+
+.quiz-question {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  color: #4a4a4a;
+}
+
+.option-btn {
+  padding: 1rem;
+  font-size: 1.2rem;
+  border-radius: 12px;
+  border: none;
+  background-color: #ffd166;
+  color: #000;
+  text-align: left;
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+.option-label {
+  font-weight: bold;
+  margin-right: 10px;
+}
+
+.option-btn.correct {
+  background-color: #06d6a0;
+  color: white;
+}
+
+.option-btn.wrong {
+  background-color: #ef476f;
+  color: white;
+}
+
+.option-btn:disabled {
+  opacity: 0.8;
+}
+
+.next-button {
+  margin-top: 1.5rem;
+  padding: 0.8rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  background-color: #118ab2;
+  color: white;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+.next-button:hover {
+  background-color: #073b4c;
+}
+
+.quit-row {
+  text-align: right;
+}
+
+.quit-button {
+  color: red;
+  background-color: transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
 }

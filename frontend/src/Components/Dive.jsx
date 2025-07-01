@@ -3,86 +3,64 @@ import useFoodData from '../Hooks/useFoodData';
 import usePlaceData from '../Hooks/usePlaceData';
 import useFestivalData from '../Hooks/useFestivalData';
 import useWearData from '../Hooks/useWearData';
+import ScoreScreen from './ScoreScreen';
 import '../Css/Dive.css';
 
 export default function Dive() {
-  const foodData = useFoodData(null, true); // get all
+  const foodData = useFoodData(null, true);
   const placeData = usePlaceData(null, true);
   const festivalData = useFestivalData(null, true);
   const wearData = useWearData(null, true);
-  
-  const [category, setCategory] = useState(null);
+
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [score, setScore] = useState(0);
   const [showScore, setShowScore] = useState(false);
 
-  const generateQuizItems = (category) => {
-    let items = [];
-
-    if (category === 'food') items = foodData.map(i => ({ ...i, type: 'food' }));
-    if (category === 'place') items = placeData.map(i => ({ ...i, type: 'place' }));
-    if (category === 'festival') items = festivalData.map(i => ({ ...i, type: 'festival' }));
-    if (category === 'wear') {
-      items = (wearData || []).map(i => ({
+  const generateQuizItems = () => {
+    const tables = {
+      food: foodData || [],
+      place: placeData || [],
+      festival: festivalData || [],
+      wear: (wearData || []).map(i => ({
         ...i,
-        name: i.menWear,
-        image: i.image,
+        name: i.menWear, // for quiz purposes
         type: 'wear',
-      }));
-    }
+      })),
+    };
 
-    if (category === 'mix') {
-      items = [
-        ...(foodData || []).map(i => ({ ...i, type: 'food' })),
-        ...(placeData || []).map(i => ({ ...i, type: 'place' })),
-        ...(festivalData || []).map(i => ({ ...i, type: 'festival' })),
-        ...(wearData || []).map(i => ({
-          ...i,
-          name: i.menWear,
-          image: i.image,
-          type: 'wear',
-        })),
-      ];
-    }
+    const allItems = Object.entries(tables)
+      .flatMap(([type, arr]) => arr.map(item => ({ ...item, type })));
 
-    if (!items || items.length === 0) return [];
+    if (!allItems.length) return [];
 
-    const quizItems = [...items]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, category === 'mix' ? 10 : 5)
-      .map(item => {
-        const correct = item.name;
-        const allOptions = items
-          .map(i => i.name)
-          .filter(name => name && name !== correct);
+    const selectedItems = [...allItems].sort(() => 0.5 - Math.random()).slice(0, 10);
 
-        const incorrects = allOptions
-          .sort(() => 0.5 - Math.random())
-          .slice(0, 3);
+    const quizItems = selectedItems.map(item => {
+      const correct = item.name;
+      const sameTypeOptions = tables[item.type].map(i => i.menWear || i.name).filter(n => n && n !== correct);
+      const incorrects = sameTypeOptions.sort(() => 0.5 - Math.random()).slice(0, 3);
+      const options = [...incorrects, correct].sort(() => 0.5 - Math.random());
 
-        const options = [...incorrects, correct].sort(() => 0.5 - Math.random());
-
-        return {
-          ...item,
-          correct,
-          options,
-        };
-      });
+      return {
+        ...item,
+        correct,
+        options,
+      };
+    });
 
     return quizItems;
   };
 
   useEffect(() => {
-    if (!category) return;
-    const quizItems = generateQuizItems(category);
+    const quizItems = generateQuizItems();
     setQuestions(quizItems);
     setCurrentIndex(0);
     setScore(0);
     setSelectedAnswer(null);
     setShowScore(false);
-  }, [category, foodData, placeData, festivalData, wearData]);
+  }, [foodData, placeData, festivalData, wearData]);
 
   const handleSelect = (option) => {
     setSelectedAnswer(option);
@@ -101,8 +79,8 @@ export default function Dive() {
   };
 
   const resetGame = () => {
-    setCategory(null);
-    setQuestions([]);
+    const quizItems = generateQuizItems();
+    setQuestions(quizItems);
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setScore(0);
@@ -113,30 +91,19 @@ export default function Dive() {
 
   return (
     <div className="dive-wrapper">
-      {!category ? (
-        <div className="category-select">
-          <h2>🎮 Choose a Category</h2>
-          <button onClick={() => setCategory('food')}>🍲 Food</button>
-          <button onClick={() => setCategory('place')}>🏞️ Places</button>
-          <button onClick={() => setCategory('festival')}>🎉 Festivals</button>
-          <button onClick={() => setCategory('wear')}>👗 Wear</button>
-          <button onClick={() => setCategory('mix')}>🌈 Mix</button>
-        </div>
-      ) : showScore ? (
-        <div className="score-screen">
-          <h2>🎯 Game Over!</h2>
-          <p>Your Score: {score} / {questions.length}</p>
-          <button onClick={resetGame}>🔁 Play Again</button>
-        </div>
-      ) : (
+      <h2 className="heading">🖼️ Look Closely! Can You Guess It Right? 🖼️</h2>
+      {showScore ? (
+              <ScoreScreen score={score} total={questions.length} resetGame={resetGame} />
+            ) : (
         current && (
           <div className="question-box">
             <div className="quit-row">
-              <button onClick={resetGame} className="quit-button">❌ Quit</button>
+              <button onClick={resetGame} className="try-again-button">Restart</button>
             </div>
-
-            <h3 className="question-text">
-              Q{currentIndex + 1}.{" "}
+            <h2 className="question-text">
+              Question {currentIndex + 1} of {questions.length}
+            </h2>
+            <h3 className="quiz-question">
               {current.type === 'food' && 'What is this food?'}
               {current.type === 'place' && 'Where is this place?'}
               {current.type === 'festival' && 'Which festival is this?'}
@@ -160,8 +127,8 @@ export default function Dive() {
                         ? opt === current.correct
                           ? 'correct'
                           : opt === selectedAnswer
-                          ? 'wrong'
-                          : ''
+                            ? 'wrong'
+                            : ''
                         : ''}`}
                       disabled={!!selectedAnswer}
                     >
@@ -172,12 +139,7 @@ export default function Dive() {
 
                 {selectedAnswer && (
                   <>
-                    <p className={`feedback ${selectedAnswer === current.correct ? 'correct' : 'incorrect'}`}>
-                      {selectedAnswer === current.correct
-                        ? '🎉 Correct!'
-                        : `❌ Correct answer: ${current.correct}`}
-                    </p>
-                    <button onClick={nextQuestion} className="next-button">➡️ Next</button>
+                    <button onClick={nextQuestion} className="next-button">Next</button>
                   </>
                 )}
               </div>

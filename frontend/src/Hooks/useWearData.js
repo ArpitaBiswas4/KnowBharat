@@ -5,9 +5,9 @@ export default function useWearData(stateId, fetchAll = false) {
 
   useEffect(() => {
     const url = fetchAll
-      ? `http://localhost:8080/wears/all`
+      ? `http://localhost:8081/wears/all`
       : stateId
-      ? `http://localhost:8080/wears/wear/${stateId}`
+      ? `http://localhost:8081/wears/wear/${stateId}`
       : null;
 
     if (!url) return;

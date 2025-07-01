@@ -5,9 +5,9 @@ export default function useFoodData(stateId, fetchAll = false) {
 
   useEffect(() => {
     const url = fetchAll
-      ? `http://localhost:8080/foods/all`
+      ? `http://localhost:8081/foods/all`
       : stateId
-      ? `http://localhost:8080/foods/food/${stateId}`
+      ? `http://localhost:8081/foods/food/${stateId}`
       : null;
 
     if (!url) return;

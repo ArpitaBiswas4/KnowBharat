@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import IndiaMap from './India';
 import useStateData from '../Hooks/useStateData';
+import useFoodData from '../Hooks/useFoodData';
+import usePlaceData from '../Hooks/usePlaceData';
+import useFestivalData from '../Hooks/useFestivalData';
+import useWearData from '../Hooks/useWearData';
 import '../Css/Map.css';
 
-export default function ElderHome() {
+export default function Map() {
   const { stateData, selectedState, setSelectedState } = useStateData();
   const [hoveredState, setHoveredState] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [currentView, setCurrentView] = useState('basic');
+  const [carouselIndex, setCarouselIndex] = useState(0);
+
   const [tryMode, setTryMode] = useState(false);
   const [userAnswers, setUserAnswers] = useState({});
   const [result, setResult] = useState(null);
@@ -16,46 +23,63 @@ export default function ElderHome() {
 
   const fields = ['name', 'capital', 'population', 'language', 'area', 'established'];
 
+  const stateInfo = hoveredState
+    ? stateData[hoveredState]
+    : selectedState
+      ? stateData[selectedState]
+      : null;
+
+  const foodData = useFoodData(stateInfo?.id || 0);
+  const placeData = usePlaceData(stateInfo?.id || 0);
+  const festivalData = useFestivalData(stateInfo?.id || 0);
+  const wearData = useWearData(stateInfo?.id || 0);
+
   const handleSearchChange = (e) => {
-    const value = e.target.value.toLowerCase();
+    const value = e.target.value;
     setSearchTerm(value);
     const filtered = Object.keys(stateData).filter((key) =>
-      stateData[key].name.toLowerCase().startsWith(value)
+      stateData[key].name.toLowerCase().startsWith(value.toLowerCase())
     );
     setSuggestions(filtered);
   };
 
   const handleSearchEnter = (e) => {
     if (e.key === 'Enter' && suggestions.length > 0) {
-      setSelectedState(suggestions[0]);
+      const selected = suggestions[0];
+      setSelectedState(selected);
+      setSearchTerm(stateData[selected].name);
       setSuggestions([]);
-      setSearchTerm('');
       resetTry();
+      setCurrentView('basic');
+      setCarouselIndex(0);
     }
   };
 
-  const resetTry = () => {
+  const handleViewChange = (view) => {
+    setCurrentView(view);
+    setCarouselIndex(0);
     setTryMode(false);
-    setUserAnswers({});
-    setResult(null);
-    setUsedHints([]);
-    setRevealedHints([]);
   };
 
-  const handlePlayAgain = () => {
-    const cleared = {};
-    fields.forEach((field) => (cleared[field] = ''));
-    setUserAnswers(cleared);
-    setResult(null);
-    setUsedHints([]);
-    setRevealedHints([]);
+  const getCarouselData = () => {
+    switch (currentView) {
+      case 'food': return foodData || [];
+      case 'festival': return festivalData || [];
+      case 'tourist': return placeData || [];
+      default: return [];
+    }
   };
 
-  const stateInfo = hoveredState
-    ? stateData[hoveredState]
-    : selectedState
-    ? stateData[selectedState]
-    : null;
+  const carouselData = getCarouselData();
+  const currentItem = carouselData[carouselIndex];
+
+  const handlePrev = () => {
+    setCarouselIndex((prev) => (prev - 1 + carouselData.length) % carouselData.length);
+  };
+
+  const handleNext = () => {
+    setCarouselIndex((prev) => (prev + 1) % carouselData.length);
+  };
 
   const handleAnswerChange = (e) => {
     setUserAnswers({ ...userAnswers, [e.target.name]: e.target.value });
@@ -63,7 +87,6 @@ export default function ElderHome() {
 
   const handleCheckAnswers = () => {
     if (!stateInfo) return;
-
     let totalCorrect = 0;
     const correct = {};
 
@@ -81,7 +104,11 @@ export default function ElderHome() {
     const hintPenalty = usedHints.length * 0.5;
     const finalScore = totalCorrect - hintPenalty;
 
-    setResult({ totalCorrect: finalScore, correct, allCorrect: totalCorrect === fields.length });
+    setResult({
+      totalCorrect: Math.max(0, finalScore),
+      correct,
+      allCorrect: totalCorrect === fields.length,
+    });
   };
 
   const handleHint = () => {
@@ -101,6 +128,23 @@ export default function ElderHome() {
     setUsedHints((prev) => [...prev, randomField]);
   };
 
+  const resetTry = () => {
+    setTryMode(false);
+    setUserAnswers({});
+    setResult(null);
+    setUsedHints([]);
+    setRevealedHints([]);
+  };
+
+  const handlePlayAgain = () => {
+    const cleared = {};
+    fields.forEach((field) => (cleared[field] = ''));
+    setUserAnswers(cleared);
+    setResult(null);
+    setUsedHints([]);
+    setRevealedHints([]);
+  };
+
   return (
     <div className="container">
       <div id="map-container">
@@ -114,27 +158,34 @@ export default function ElderHome() {
         </div>
 
         <div id="sidebar">
-          {/* Hide search bar when Try Mode is active */}
           {!tryMode && (
-            <div id="search-container">
+            <div id="search-try-container">
               <input
                 type="text"
-                placeholder="Search for a state..."
+                placeholder="🔍 Search for a state..."
                 value={searchTerm}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchEnter}
+                onBlur={() => setTimeout(() => setSuggestions([]), 100)}
                 id="state-search"
               />
+              <button className="try-button try-near-search" onClick={() => setTryMode(!tryMode)}>
+                Try Yourself!
+              </button>
+
               {suggestions.length > 0 && (
                 <ul id="search-results">
                   {suggestions.map((state, index) => (
                     <li
                       key={index}
                       className="search-result-item"
-                      onClick={() => {
+                      onMouseDown={() => {
                         setSelectedState(state);
+                        setSearchTerm(stateData[state].name);
                         setSuggestions([]);
                         resetTry();
+                        setCurrentView('basic');
+                        setCarouselIndex(0);
                       }}
                     >
                       {stateData[state].name}
@@ -145,40 +196,110 @@ export default function ElderHome() {
             </div>
           )}
 
+          {tryMode && (
+            <div className="try-top-button-wrapper">
+              <button className="try-button try-near-search" onClick={() => setTryMode(false)}>
+                Show Info
+              </button>
+            </div>
+          )}
+
+
           {stateInfo ? (
             <>
               <div className="state-header">
-                {!tryMode && <h2>{stateInfo.name}</h2>}
                 <div className="try-controls">
-                  <button className="try-button" onClick={() => setTryMode(!tryMode)}>
-                    {tryMode ? 'Show State Data' : 'Try Yourself!'}
-                  </button>
                   {tryMode && (
                     <button
-                      className="hint-icon"
+                      className={`hint-icon ${revealedHints.length >= 3 || result ? 'disabled-hint' : ''}`}
                       onClick={handleHint}
-                      title="Hint"
                       disabled={!!result || revealedHints.length >= 3}
                     >
-                      Use Hint:💡
+                      Hint
                     </button>
                   )}
                 </div>
               </div>
 
-              {tryMode ? (
+              {!tryMode && (
+                <>
+                  <h2>{stateInfo.name}</h2>
+                  <div>
+                    <button
+                      onClick={() => handleViewChange('basic')}
+                      className={`details-controls ${currentView === 'basic' ? 'active-view' : ''}`}
+                    >
+                      Basic Info
+                    </button>
+                    <button
+                      onClick={() => handleViewChange('food')}
+                      className={`details-controls ${currentView === 'food' ? 'active-view' : ''}`}
+                    >
+                      Food
+                    </button>
+                    <button
+                      onClick={() => handleViewChange('festival')}
+                      className={`details-controls ${currentView === 'festival' ? 'active-view' : ''}`}
+                    >
+                      Festival
+                    </button>
+                    <button
+                      onClick={() => handleViewChange('wear')}
+                      className={`details-controls ${currentView === 'wear' ? 'active-view' : ''}`}
+                    >
+                      Wear
+                    </button>
+                    <button
+                      onClick={() => handleViewChange('tourist')}
+                      className={`details-controls ${currentView === 'tourist' ? 'active-view' : ''}`}
+                    >
+                      Tourist
+                    </button>
+                  </div>
+
+
+                  <div className="state-view">
+                    {currentView === 'basic' && (
+                      <div className='basic-info'>
+                        <p><strong>🏛 Capital:</strong> {stateInfo.aboutCapital}</p>
+                        <p><strong>👨‍👩‍👧 Population:</strong> {stateInfo.population}</p>
+                        <p><strong>🗣 Language:</strong> {stateInfo.language}</p>
+                        <p><strong>📐 Area:</strong> {stateInfo.area}</p>
+                        <p><strong>📅 Established:</strong> {stateInfo.established}</p>
+                        <p><strong>📖 About:</strong> {stateInfo.about}</p>
+                      </div>
+                    )}
+
+                    {(currentView === 'food' || currentView === 'festival' || currentView === 'tourist') && currentItem && (
+                      <div className="carousel-container">
+                        <img src={currentItem.imageUrl} alt={currentItem.name} style={{ width: '100%', borderRadius: '12px' }} />
+                        <p><strong>{currentItem.name}</strong></p>
+                        <p>{currentItem.description}</p>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <button onClick={handlePrev}>Prev</button>
+                          <button onClick={handleNext}>Next</button>
+                        </div>
+                      </div>
+                    )}
+
+                    {currentView === 'wear' && wearData && (
+                      <div className="wear-container">
+                        <img src={wearData.imageUrl} alt="Traditional Wear" style={{ width: '100%', borderRadius: '12px' }} />
+                        <p><strong>🧑‍🦱 Men:</strong> {wearData.menWear}</p>
+                        <p><strong>👩‍🦰 Women:</strong> {wearData.womenWear}</p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {tryMode && (
                 <>
                   {revealedHints.length > 0 && (
                     <div className="hint-display">
                       {revealedHints.map((hint, idx) => (
-                        <p key={idx}>
-                          💡 Hint for {hint.field.charAt(0).toUpperCase() + hint.field.slice(1)}:{' '}
-                          <strong>{hint.value}</strong>
-                        </p>
+                        <p key={idx}>💡 Hint for {hint.field}: <strong>{hint.value}</strong></p>
                       ))}
-                      {revealedHints.length >= 3 && (
-                        <p className="all-used-msg">All hints used. Check state data!</p>
-                      )}
                     </div>
                   )}
 
@@ -206,7 +327,7 @@ export default function ElderHome() {
                         </label>
                         {isSubmitted && !isCorrect && (
                           <div className="expected-text">
-                            Expected: <strong>{stateInfo[field]}</strong>
+                            → Expected: <strong>{stateInfo[field]}</strong>
                           </div>
                         )}
                       </div>
@@ -221,33 +342,19 @@ export default function ElderHome() {
 
                   {result && (
                     <div className="result-container">
-                      <p>
-                        <strong>Score:</strong> {Math.max(0, result.totalCorrect)} / 6
-                      </p>
+                      <p>🎯 <strong>Score:</strong> {result.totalCorrect} / 6</p>
                       {result.totalCorrect < fields.length && (
                         <button onClick={handlePlayAgain} className="play-again-button">
-                          Play Again
+                          Try Again
                         </button>
                       )}
                     </div>
                   )}
                 </>
-              ) : (
-                <>
-                  <p><strong>Capital:</strong> {stateInfo.capital}</p>
-                  <p><strong>Population:</strong> {stateInfo.population}</p>
-                  <p><strong>Language:</strong> {stateInfo.language}</p>
-                  <p><strong>Area:</strong> {stateInfo.area}</p>
-                  <p><strong>Established:</strong> {stateInfo.established}</p>
-                  <p><strong>About:</strong> {stateInfo.about}</p>
-                  <a href={`/states/${stateInfo.id}`} className="more-link">
-                    More about this state →
-                  </a>
-                </>
               )}
             </>
           ) : (
-            <p>Hover over a state or search for one.</p>
+            <p>🖱 Hover or search for a state to begin.</p>
           )}
         </div>
       </div>

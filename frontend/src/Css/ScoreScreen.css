@@ -1,0 +1,42 @@
+.score-screen {
+  text-align: center;
+  padding: 2rem;
+  background-color: #f0faff;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  animation: fadeIn 0.5s ease-in-out;
+  width: 50vw;
+  position: fixed;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.score-screen h2 {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.score-screen p {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.try-again-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  background-color: #0077cc;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.try-again-button:hover {
+  background-color: #005fa3;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}

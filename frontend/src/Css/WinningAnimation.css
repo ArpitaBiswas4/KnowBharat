@@ -1,4 +1,4 @@
-/* WinningAnimation.css */
+@import url('https://fonts.googleapis.com/css2?family=Chewy&family=Baloo+Bhai+2&display=swap');
 
 .winning-animation {
   position: fixed;
@@ -6,54 +6,46 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.8);
+  background: linear-gradient(to top right, #ffe4e1, #fff8dc);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  animation: fadeIn 1s forwards;
+  z-index: 9999;
+  animation: fadeIn 0.8s ease-out;
+  font-family: 'Chewy', cursive;
 }
 
 .confetti {
-  font-size: 3rem;
-  animation: confetti-fall 10s ease-in-out forwards;
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(-100%);
-    opacity: 1;
-  }
-  100% {
-    transform: translateY(100%);
-    opacity: 0;
-  }
+  font-size: 2.5rem;
+  animation: bounce 1s ease-in-out infinite alternate;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
 .win-message {
-  margin-top: 20px;
-  font-size: 2rem;
-  color: green;
-  animation: slideIn 1s forwards;
+  font-size: 2.4rem;
+  color: #ff4081;
+  animation: slideIn 1s ease-in-out;
+  text-shadow: 2px 2px #ffcdd2;
+  padding: 10px 20px;
+  background-color: #fff3e0;
+  border: 4px dashed #ffb74d;
+  border-radius: 20px;
+}
+
+@keyframes bounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-20px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideIn {
-  0% {
-    transform: translateY(-50px);
-    opacity: 0;
-  }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
-  }
+  0% { transform: translateY(-60px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
 }

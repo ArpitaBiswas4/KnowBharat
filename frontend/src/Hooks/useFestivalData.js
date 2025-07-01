@@ -5,9 +5,9 @@ export default function useFestivalData(stateId, fetchAll = false) {
 
   useEffect(() => {
     const url = fetchAll
-      ? `http://localhost:8080/festivals/all`
+      ? `http://localhost:8081/festivals/all`
       : stateId
-      ? `http://localhost:8080/festivals/festival/${stateId}`
+      ? `http://localhost:8081/festivals/festival/${stateId}`
       : null;
 
     if (!url) return;

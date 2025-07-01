@@ -32,22 +32,22 @@ export default function MatchingGame() {
       case 'language': return state.language;
       case 'established': return state.established;
       case 'food': {
-        const res = await fetch(`http://localhost:8080/foods/food/${id}`);
+        const res = await fetch(`http://localhost:8081/foods/food/${id}`);
         const data = await res.json();
         return Array.isArray(data) ? data[0]?.name : data?.name;
       }
       case 'place': {
-        const res = await fetch(`http://localhost:8080/places/place/${id}`);
+        const res = await fetch(`http://localhost:8081/places/place/${id}`);
         const data = await res.json();
         return Array.isArray(data) ? data[0]?.name : data?.name;
       }
       case 'festival': {
-        const res = await fetch(`http://localhost:8080/festivals/festival/${id}`);
+        const res = await fetch(`http://localhost:8081/festivals/festival/${id}`);
         const data = await res.json();
         return Array.isArray(data) ? data[0]?.name : data?.name;
       }
       case 'wear': {
-        const res = await fetch(`http://localhost:8080/wears/wear/${id}`);
+        const res = await fetch(`http://localhost:8081/wears/wear/${id}`);
         const data = await res.json();
         return data?.menWear;
       }
@@ -105,45 +105,55 @@ export default function MatchingGame() {
     return array;
   };
 
-  const handleStateSelect = (state) => {
-    setSelectedState(state);
+  const handleItemSelect = (type, item) => {
     setFeedback('');
+
+    if (type === 'state') {
+      if (selectedValue) {
+        evaluateMatch(item, selectedValue);
+      } else {
+        setSelectedState(item);
+        setSelectedValue(null);
+      }
+    } else if (type === 'value') {
+      if (selectedState) {
+        evaluateMatch(selectedState, item);
+      } else {
+        setSelectedValue(item);
+        setSelectedState(null);
+      }
+    }
   };
 
-  const handleValueSelect = (value) => {
-    setSelectedValue(value);
-    if (selectedState) {
-      const matchPair = matchedPairs.find(p => p.state === selectedState);
-      if (matchPair) return;
+  const evaluateMatch = async (stateKey, value) => {
+    const correct = await getValueByCategoryAsync(stateKey, category);
+    const isCorrect = correct === value;
 
-      const correctValue = values.find(v => v === value);
-      const isMatch = getValueByCategoryAsync(selectedState, category).then(correct => {
-        const matched = correct === value;
-        if (matched) {
-          setMatchedPairs(prev => [...prev, { state: selectedState, value }]);
-          setFeedback('Correct Match!');
-          setRemovingItems(prev => [...prev, selectedState, value]);
+    if (isCorrect) {
+      setMatchedPairs(prev => [...prev, { state: stateKey, value }]);
+      setFeedback('✅ Correct Match!');
+      setRemovingItems(prev => [...prev, stateKey, value]);
 
-          setTimeout(() => {
-            setStates(prev => prev.filter(s => s !== selectedState));
-            setValues(prev => prev.filter(v => v !== value));
-            setRemovingItems([]);
-          }, 500);
-        } else {
-          setHearts(prev => prev - 1);
-          setFeedback('Incorrect Match. Try Again!');
-        }
-        setSelectedState(null);
-        setSelectedValue(null);
-        setTimeout(() => setFeedback(''), 3000);
-      });
+      setTimeout(() => {
+        setStates(prev => prev.filter(s => s !== stateKey));
+        setValues(prev => prev.filter(v => v !== value));
+        setRemovingItems([]);
+      }, 500);
+    } else {
+      setHearts(prev => prev - 1);
+      setFeedback('💔 Incorrect Match. Try Again!');
     }
+
+    setSelectedState(null);
+    setSelectedValue(null);
+    setTimeout(() => setFeedback(''), 3000);
   };
 
   useEffect(() => {
     if (matchedPairs.length === 5) {
       setGameOver(true);
       setShowWinningAnimation(true);
+      setTimeout(() => setShowWinningAnimation(false), 4000);
     }
   }, [matchedPairs]);
 
@@ -165,22 +175,22 @@ export default function MatchingGame() {
       {showWinningAnimation && <WinningAnimation onAnimationEnd={handleAnimationEnd} />}
       {!category ? (
         <div className="category-select">
-          <h2>Select a Matching Category</h2>
+          <h2>🎮 Select a Matching Category 🎮</h2>
           {categories.map(cat => (
             <button key={cat} onClick={() => setCategory(cat)}>
-              {cat === 'mix' ? '🌈 Mix' : `🔹 ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
+              {cat === 'mix' ? ' Mix' : ` ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
             </button>
           ))}
         </div>
       ) : (
         <>
           <div className="quit-row">
-  <button className="quit-button" onClick={handleRestart}>❌ Quit</button>
-</div>
+            <button className="quit-button" onClick={handleRestart}>❌</button>
+          </div>
 
-          <h2 className="title">Match States with Their {category === 'place' ? 'Tourist Places' : category.charAt(0).toUpperCase() + category.slice(1)}</h2>
+          <h1 className="title">Match States with Their {category === 'place' ? 'Tourist Places' : category.charAt(0).toUpperCase() + category.slice(1)}</h1>
           <div className="status">
-            <h3 className="hearts">Hearts: {Array(hearts).fill('❤️')}</h3>
+            <h3 className="hearts">{Array(hearts).fill('❤️')}</h3>
             {hearts === 0 && (
               <>
                 <p className="lose-message">You lost all hearts. Restart?</p>
@@ -189,7 +199,7 @@ export default function MatchingGame() {
             )}
             {gameOver && (
               <>
-                <p className="win-message">Congratulations! All pairs matched!</p>
+                <p className="win-message">🎉 Congratulations! All pairs matched!</p>
                 <button onClick={handleRestart} className="restart-button">Play Again</button>
               </>
             )}
@@ -205,13 +215,13 @@ export default function MatchingGame() {
             {hearts > 0 && !gameOver && (
               <div className="game-columns">
                 <div className="states-column">
-                  <h3>States</h3>
+                  <h2>States</h2>
                   <ul className="list">
                     {states.map(state => (
                       <li
                         key={state}
                         className={`list-item ${selectedState === state ? 'selected' : ''} ${removingItems.includes(state) ? 'removing' : ''}`}
-                        onClick={() => handleStateSelect(state)}
+                        onClick={() => handleItemSelect('state', state)}
                       >
                         {stateData[state].name}
                       </li>
@@ -219,13 +229,13 @@ export default function MatchingGame() {
                   </ul>
                 </div>
                 <div className="capitals-column">
-                  <h3>{category === 'place' ? 'Tourist Places' : category.charAt(0).toUpperCase() + category.slice(1)}</h3>
+                  <h2>{category === 'place' ? 'Tourist Places' : category.charAt(0).toUpperCase() + category.slice(1)}</h2>
                   <ul className="list">
                     {values.map(val => (
                       <li
                         key={val}
                         className={`list-item ${selectedValue === val ? 'selected' : ''} ${removingItems.includes(val) ? 'removing' : ''}`}
-                        onClick={() => handleValueSelect(val)}
+                        onClick={() => handleItemSelect('value', val)}
                       >
                         {val}
                       </li>
